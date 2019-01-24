@@ -1,0 +1,11 @@
+---
+icinga2_mysql_schemas:
+  - https://raw.githubusercontent.com/Icinga/icinga2/master/lib/db_ido_mysql/schema/mysql.sql
+  - https://raw.githubusercontent.com/Icinga/icingaweb2/master/etc/schema/mysql.schema.sql
+
+enablerepo: "base"
+
+icinga2_web_ui_mariadb_rpm:
+ - mariadb-server
+ - MySQL-python
+ - icinga2-ido-mysql

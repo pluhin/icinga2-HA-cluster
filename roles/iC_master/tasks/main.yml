@@ -1,0 +1,84 @@
+---
+- name: Install Icinga2 IDO modules
+  yum:
+    name: icinga2-ido-mysql
+    state: latest
+
+- name: Configure Icinga2 Ido Mysql Feature
+  template:
+    src: "ido-mysql.conf.j2"
+    dest: "{{ icinga2_ido_mysql_conf }}"
+    backup: yes
+    owner: "icinga"
+    group: "icinga"
+    mode: 0640
+
+- name: Icinga2. Activate Icinga2 features
+  icinga2_feature:
+    name: ido_mysql
+    state: present
+
+- name: Centos Install Centos Release Scl
+  package:
+    name: centos-release-scl
+    state: present
+  when: ansible_distribution == "CentOS"
+
+- name: RedHat Install RhScl subscription requirment
+  fail:
+    msg: "please enable subscription-manager repos --enable rhel-server-rhscl-{{ ansible_facts.ansible_distribution_major_version }}-rpms"
+  when: ansible_distribution == "RedHat"
+
+- name: Install Mysql php-fpm
+  package:
+    name: rh-php71-php-mysqlnd
+    state: present
+  when:
+    - icinga2_ido_mysql_configuration is defined
+
+
+- name: Timezone in php.ini
+  replace:
+    path: /etc/opt/rh/rh-php71/php.ini
+    regexp: '^;?date.timezone =.*'
+    replace: 'date.timezone = "UTC"'
+  tags:
+    - php_time
+- name: Install Icinga Web2
+  yum:
+    name:  "{{ icinga2_web2_ui_rpm }}"
+    state: latest
+    enablerepo: "{{ enablerepo }}"
+  tags: icinga2-ansible-web2-ui-install
+
+- name: Icingaweb2. Templates for Icingaweb2 copy
+  template:
+    src: "icingaweb2/{{ item }}"
+    dest: "/etc/icingaweb2/{{ icinga2_ido_mysql_conf }}"
+    backup: yes
+    owner: "apapch"
+    group: "icingaweb2"
+    mode: 0660
+  with_items: 
+    - config.ini.j2
+    - groups.ini.j2
+    - resources.ini.j2
+    - authentication.ini.j2
+
+- name: Download moduels from github
+  git:
+    repo: "https://github.com/Icinga/icingaweb2-module-{{ item }}.git"
+    dest: "{{ modules_dir }}/{{ item}}"
+    update: no
+  with_items: "{{ modules_list }}"
+  ignore_errors: yes
+   
+- name: Restart httpd and Icinga2 to Apply the Configuration
+  service:
+    name: "{{ item }}"
+    state: restarted
+    enabled: yes
+  with_items:
+    - httpd
+    - icinga2
+    - rh-php71-php-fpm

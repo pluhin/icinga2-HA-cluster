@@ -1,0 +1,57 @@
+---
+- name: Set host name
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: YUM. Get Public Yum Repo
+  yum:
+    name: "{{ icinga2_repo }}"
+    state: present
+    disable_gpg_check: no
+
+- name: YUM. Requirements
+  yum: 
+    name: "{{ common_yum }}"
+    state: latest
+
+- name: YUM. Icinga2
+  yum: 
+    name: "{{ icinga2_yum }}"
+    state: latest
+
+- name: YUM. Nagios
+  yum: 
+    name: "{{ nagios_yum }}"
+    state: latest
+
+- name: Icinga2. Activate Icinga2 features
+  icinga2_feature:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ icinga2_feature_list }}"
+
+- name: Icinga2. Work with sed
+  replace:
+    path: "{{ item.path }}"
+    regexp: "{{ item.before }}"
+    replace: "{{ item.after }}"
+  with_items:
+    - path: /etc/icinga2/icinga2.conf
+      before: '(include_recursive \"conf.d\")'
+      after: '#\1' 
+    - path: /etc/icinga2/features-enabled/api.conf
+      before: '//'
+      after: '' 
+    - path: /etc/icinga2/features-enabled/api.conf
+      before: 'false'
+      after: 'true'
+
+- name: Run icinga2 pki new-cert for our host
+  shell: /usr/sbin/icinga2 api setup
+
+- name: Start Icinga2
+  service: 
+    name: icinga2
+    state: started
+    enabled: yes
+  ignore_errors: yes

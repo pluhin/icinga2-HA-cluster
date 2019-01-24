@@ -1,0 +1,37 @@
+---
+all-local:
+  vars:
+    icinga2_os_type: "Linux"
+  children:
+    Local_bastion:
+      hosts: 
+        bastion:
+          ansible_user: jump
+          ansible_host: 178.124.206.48
+    Icinga2_cluster:
+      vars:
+        ansible_user: root
+        icinga2_db: "icinga"
+        icinga2_db_pass: "icinga"
+        icinga2_db_user: "icinga"
+        icinga2_web2_db: "icingaweb"
+        icinga2_web2_db_pass: "icingaweb"
+        icinga2_web2_db_user: "icingaweb"
+        icinga2_db_host: 192.168.254.75
+      children:
+        Icinga2_masters:
+          hosts: 
+            icinga2_master_1:
+              ansible_host: 192.168.254.72
+            icinga2_master_2:
+              ansible_host: 192.168.254.73
+        Icinga2_DB:
+          hosts: 
+            icinga2_DB1:
+              ansible_host: "{{ icinga2_db_host }}"
+        Icinga2_satellites:
+          hosts:
+            icinga2_satellite_01:
+              ansible_host: 192.168.254.76
+            icinga2_satellite_02:
+              ansible_host: 192.168.254.78

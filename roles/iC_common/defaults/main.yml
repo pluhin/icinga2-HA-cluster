@@ -1,0 +1,26 @@
+---
+icinga2_main_conf: "/etc/icinga2"
+
+icinga2_repo: https://packages.icinga.com/epel/icinga-rpm-release-7-latest.noarch.rpm
+
+icinga2_yum:
+ - icinga2
+ - icinga2-selinux
+ - vim-icinga2
+nagios_yum:
+ - nagios-plugins-all
+
+common_yum:
+ - vim
+ - wget
+ - curl
+ - epel-release
+ - mc
+ - net-tools
+
+icinga2_feature_list:
+ - api
+ - command
+ - checker
+ - mainlog 
+ - notification

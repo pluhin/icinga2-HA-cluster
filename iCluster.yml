@@ -1,0 +1,17 @@
+---
+- hosts: "Icinga2_cluster"
+  become: yes
+  roles:
+    - iC_common
+
+- hosts: "Icinga2_DB"
+  become: yes
+  roles:
+    - iC_DB
+
+- hosts: "Icinga2_masters"
+  become: yes
+  roles:
+    - iC_master
+  tags:
+    - deploy::master

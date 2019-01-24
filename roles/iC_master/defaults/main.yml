@@ -1,0 +1,31 @@
+---
+enablerepo: "base"
+
+icinga2_web2_ui_rpm:
+ - httpd
+ - icingaweb2
+ - icingacli
+ - git
+ - php-yaml
+ 
+icinga2_web2_ui_deb:
+ - icingaweb2
+ - git
+
+modules_dir: "/usr/share/icingaweb2/modules"
+modules_list:
+  - cube
+  - graphite
+  - toplevelview
+  - businessprocess
+
+icinga2_ido_mysql_conf: "/etc/icinga2/features-available/ido-mysql.conf"
+icinga2_ido_mysql_configuration: |
+       library "db_ido_mysql"
+
+       object IdoMysqlConnection "ido-mysql" {
+         user = "{{ icinga2_db_user }}"
+         password = "{{ icinga2_db_pass }}"
+         host = "{{ icinga2_db_host }}"
+         database = "{{ icinga2_db }}"
+       }
