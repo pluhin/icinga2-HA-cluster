@@ -19,7 +19,7 @@ modules_list:
   - toplevelview
   - businessprocess
 
-icinga2_ido_mysql_conf: "/etc/icinga2/features-available/ido-mysql.conf"
+icinga2_ido_mysql_conf: "/etc/icinga2/features-available/ido_mysql.conf"
 icinga2_ido_mysql_configuration: |
        library "db_ido_mysql"
 

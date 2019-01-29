@@ -5,8 +5,6 @@
     dest: /tmp/
   with_items:
     - "{{ icinga2_mysql_schemas }}"
-  tags: 
-    - get_urls
 
 - name: Install MariaDB and Utils on Red Hat OS Family
   yum: 
@@ -14,9 +12,10 @@
     state: latest
 
 - name: Start MariaDB
-  service: name=mariadb
-           state=started
-           enabled=yes
+  service: 
+    name: mariadb
+    state: started
+    enabled: yes
 
 - name: DB. Create a IDO Database for Icinga2
   mysql_db:
@@ -29,32 +28,75 @@
     name: "{{ icinga2_db_user }}"
     password: "{{ icinga2_db_pass }}"
     state: present
+    host: "%"
     priv: "{{ icinga2_db }}.*:INSERT,SELECT,UPDATE,DELETE,DROP,CREATE VIEW,INDEX,EXECUTE"
-
+  tags: 
+    - mysql
 - name: DB. Import the IDO Schema
   mysql_db:
     name: "{{ icinga2_db }}"
     state: import
     target: /tmp/mysql.sql
-#  when: icinga_ido_db.changed == true
+  when: icinga_ido_db.changed == true
 
 - name: Create a Web Database for Icinga2
   mysql_db:
     name: "{{ icinga2_web2_db }}"
     state: present
   register: icinga_web_db
+  tags: 
+    - mysql
 
 - name: Create Icinga2 Web Database User and configure Grants
   mysql_user:
     name: "{{ icinga2_web2_db_user }}"
     password: "{{ icinga2_web2_db_pass }}"
     state: present
-    priv: "{{ icinga2_web2_db }}.*:INSERT,SELECT,UPDATE,DELETE,DROP,CREATE VIEW,INDEX,EXECUTE"
+    host: '%'
+    priv: "{{ icinga2_web2_db }}.*:ALL"
+    login_user: root
+    login_password: 
+  tags: 
+    - mysql
 
 - name: Import the Web Schema on Icinga Web Database (only once)
   mysql_db:
     name: "{{ icinga2_web2_db }}"
     state: import
     target: /tmp/mysql.schema.sql
- # when: icinga_web_db.changed == true
+  register: icinga_web_db_import
+  when: icinga_web_db.changed == true
+  tags: 
+    - mysql
 
+- name: template /tmp/icingaweb2_user.sql
+  template:
+    src: icingaweb2_user.sql.j2
+    dest: /tmp/icingaweb2_user.sql
+  tags: 
+    - add_user
+- name: mysql_db import Add default user
+  mysql_db:
+    name: "{{ icinga2_web2_db }}"
+    target: /tmp/icingaweb2_user.sql
+    state: import
+    login_user: "root"
+    login_password: 
+  tags: 
+    - add_user
+  #when: icinga_web_db_import.changed == true 
+
+- name: file absent /tmp/icingaweb2_user.sql
+  file: 
+    path: /tmp/icingaweb2_user.sql
+    state: absent
+  become: true
+
+- name: Add firewall rule
+  firewalld:
+    port: 3306/tcp
+    permanent: yes
+    immediate: yes
+    state: enabled
+  tags:
+  - firewall

@@ -6,7 +6,7 @@
 
 - name: Configure Icinga2 Ido Mysql Feature
   template:
-    src: "ido-mysql.conf.j2"
+    src: "ido_mysql.conf.j2"
     dest: "{{ icinga2_ido_mysql_conf }}"
     backup: yes
     owner: "icinga"
@@ -36,7 +36,6 @@
   when:
     - icinga2_ido_mysql_configuration is defined
 
-
 - name: Timezone in php.ini
   replace:
     path: /etc/opt/rh/rh-php71/php.ini
@@ -44,27 +43,45 @@
     replace: 'date.timezone = "UTC"'
   tags:
     - php_time
+
 - name: Install Icinga Web2
   yum:
     name:  "{{ icinga2_web2_ui_rpm }}"
     state: latest
     enablerepo: "{{ enablerepo }}"
-  tags: icinga2-ansible-web2-ui-install
 
+- name: Create folder structure
+  shell: | 
+    icingacli setup config directory
+    chown apache:icingaweb2 /etc/icingaweb2/enabledModules
+  become: true
+  tags: create_structure
+  
 - name: Icingaweb2. Templates for Icingaweb2 copy
   template:
-    src: "icingaweb2/{{ item }}"
-    dest: "/etc/icingaweb2/{{ icinga2_ido_mysql_conf }}"
+    src: "{{ item }}"
+    dest: /etc/icingaweb2/{{ item | basename | regex_replace('\.j2','') }}
     backup: yes
-    owner: "apapch"
+    owner: "apache"
     group: "icingaweb2"
     mode: 0660
-  with_items: 
-    - config.ini.j2
-    - groups.ini.j2
-    - resources.ini.j2
-    - authentication.ini.j2
+  with_fileglob: 
+    - templates/icingaweb2/*.j2
+  tags: 
+    - template
 
+- name: Icingaweb2. Templates for monoitoring module
+  template:
+    src: "{{ item }}"
+    dest: /etc/icingaweb2/modules/monitoring/{{ item | basename | regex_replace('\.j2','') }}
+    backup: yes
+    owner: "apache"
+    group: "icingaweb2"
+    mode: 0660
+  with_fileglob: 
+    - templates/monitoring/*.j2
+  tags: 
+    - template
 - name: Download moduels from github
   git:
     repo: "https://github.com/Icinga/icingaweb2-module-{{ item }}.git"
@@ -82,3 +99,6 @@
     - httpd
     - icinga2
     - rh-php71-php-fpm
+- selinux:
+    policy: targeted
+    state: permissive
