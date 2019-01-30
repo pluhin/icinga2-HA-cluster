@@ -84,7 +84,7 @@
     login_password: 
   tags: 
     - add_user
-  #when: icinga_web_db_import.changed == true 
+  when: icinga_web_db_import.changed == true 
 
 - name: file absent /tmp/icingaweb2_user.sql
   file: 

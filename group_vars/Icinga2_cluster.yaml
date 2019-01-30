@@ -7,3 +7,8 @@ icinga2_web2_db: "icingaweb"
 icinga2_web2_db_pass: "icingaweb"
 icinga2_web2_db_user: "icingaweb"
 icinga2_db_host: 192.168.254.75
+
+icinga2_master_01: 192.168.254.72
+icinga2_master_02: 192.168.254.73
+
+icinga2_main_conf: "/etc/icinga2"

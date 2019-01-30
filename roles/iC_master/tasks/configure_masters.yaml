@@ -1,0 +1,5 @@
+---
+- name: Setup masters block
+  shell: |
+    icinga2 node setup --master --disable-confd
+  when: inventory_hostname == "icinga2_master_1"

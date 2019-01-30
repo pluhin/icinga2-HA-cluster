@@ -1,0 +1,11 @@
+# {{ ansible_managed }}
+########################################################################
+const PluginDir =  "/usr/lib64/nagios/plugins" 
+const ManubulonPluginDir = "/usr/lib64/nagios/plugins"
+const PluginContribDir = "/usr/lib64/nagios/plugins"
+
+const NodeName = "{{ hostvars[inventory_hostname].inventory_hostname }}"
+const ZoneName = "{{ hostvars[inventory_hostname].inventory_hostname }}"
+const TicketSalt = "dome_randome"
+
+

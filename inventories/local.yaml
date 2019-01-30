@@ -1,19 +1,27 @@
 ---
 Icinga2_cluster:
   children:
-    Icinga2_masters:
-      hosts: 
-        icinga2_master_1:
-          ansible_host: 192.168.254.72
-        icinga2_master_2:
-          ansible_host: 192.168.254.73
-    Icinga2_DB:
-      hosts: 
-        icinga2_DB1:
-          ansible_host: "{{ icinga2_db_host }}" #In ./group_vars/Icinga2_cluster.yaml
-    Icinga2_satellites:
-      hosts:
-        icinga2_satellite_01:
-          ansible_host: 192.168.254.76
-        icinga2_satellite_02:
-          ansible_host: 192.168.254.78
+    master:
+      children:
+        Icinga2_masters:
+          hosts: 
+            icinga2_master_1:
+              ansible_host: "{{ icinga2_master_01 }}"
+            icinga2_master_2:
+              ansible_host: "{{ icinga2_master_02 }}"
+        Icinga2_DB:
+          hosts: 
+            icinga2_DB1:
+              ansible_host: "{{ icinga2_db_host }}"
+    zone_01:
+      children:
+        Icinag2_satellites_z01:
+          hosts:
+            icinga2_satellite_01:
+              ansible_host: "{{ satellite_01_IP }}"
+            icinga2_satellite_02:
+              ansible_host: "{{ satellite_02_IP }}"
+        clients:
+          hosts:
+            host_01:
+            host_02:

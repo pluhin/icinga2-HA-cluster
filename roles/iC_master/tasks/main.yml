@@ -50,13 +50,23 @@
     state: latest
     enablerepo: "{{ enablerepo }}"
 
+- name: Download moduels from github
+  git:
+    repo: "https://github.com/Icinga/icingaweb2-module-{{ item }}.git"
+    dest: "{{ modules_dir }}/{{ item}}"
+    update: no
+  with_items: "{{ modules_list }}"
+  ignore_errors: yes
+
 - name: Create folder structure
   shell: | 
     icingacli setup config directory
+    icingacli module enable monitoring
     chown apache:icingaweb2 /etc/icingaweb2/enabledModules
   become: true
   tags: create_structure
-  
+
+
 - name: Icingaweb2. Templates for Icingaweb2 copy
   template:
     src: "{{ item }}"
@@ -102,3 +112,7 @@
 - selinux:
     policy: targeted
     state: permissive
+
+- import_tasks: configure_masters.yaml
+  tags:
+    - master_setup
